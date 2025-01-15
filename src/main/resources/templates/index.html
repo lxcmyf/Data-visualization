@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECharts Line Chart</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <style>
+        #chart {
+            width: 100%;
+            height: 500px;
+        }
+        .time-select {
+            margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body>
+<h1>TRON 数据监控系统</h1>
+
+<!-- Time range selector -->
+<div class="time-select">
+    <label for="start-time">Start Time:</label>
+    <input type="datetime-local" id="start-time">
+    <label for="end-time">End Time:</label>
+    <input type="datetime-local" id="end-time">
+    <button id="update-chart">Update Chart</button>
+</div>
+
+<div id="chart"></div>
+
+<script>
+    $(document).ready(function () {
+        // Initialize the chart instance
+        var chart = echarts.init(document.getElementById('chart'));
+
+        // Default chart options
+        var options = {
+            title: {
+                text: ' SR 打包交易耗时及交易数量'
+            },
+            tooltip: {
+                trigger: 'axis',
+                formatter: function (params) {
+                    // Display height, cost, txNum, and updateTime in tooltip
+                    var tooltipText = params.map(function (item) {
+                        return `${item.seriesName}: ${item.value}`;
+                    }).join('<br>');
+
+                    // Extract updateTime from the first data point (assumes consistent updateTime for the axis point)
+                    var updateTime = params[0]?.data.updateTime || 'N/A';
+                    return `${tooltipText}<br>Update Time: ${updateTime}`;
+                }
+            },
+            legend: {
+                data: ['Cost', 'Transaction Number'],
+                selected: {
+                    'Cost': true,
+                    'Transaction Number': true
+                }
+            },
+            xAxis: {
+                type: 'category',
+                name: 'Height',
+                data: []
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Value'
+            },
+            series: [
+                {
+                    name: 'Cost',
+                    type: 'line',
+                    data: []
+                },
+                {
+                    name: 'Transaction Number',
+                    type: 'line',
+                    data: []
+                }
+            ]
+        };
+
+        // Set the default options on the chart
+        chart.setOption(options);
+
+        // Get the default time range (last 7 days)
+        var currentDate = new Date();
+        var lastWeekDate = new Date(currentDate);
+        lastWeekDate.setDate(currentDate.getDate() - 7);
+
+        // Set default values for time input (7 days ago to today)
+        $('#start-time').val(formatDate(lastWeekDate));
+        $('#end-time').val(formatDate(currentDate));
+
+        // Function to format date to 'YYYY-MM-DDThh:mm:ss'
+        function formatDate(date) {
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            var seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        }
+
+        // Fetch data based on selected time range
+        function fetchData() {
+            var startTime = $('#start-time').val();
+            var endTime = $('#end-time').val();
+
+            $.ajax({
+                url: '/getBlockGenerateInfo',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    startTime: $('#start-time').val(),
+                    endTime: $('#end-time').val()
+                }),
+                success: function (response) {
+                    var heights = [];
+                    var costData = [];
+                    var txNumData = [];
+
+                    response.forEach(function (item) {
+                        heights.push(item.height);
+                        costData.push({ value: item.cost, updateTime: item.updateTime });
+                        txNumData.push({ value: item.txNum, updateTime: item.updateTime });
+                    });
+
+                    options.xAxis.data = heights;
+                    options.series[0].data = costData;
+                    options.series[1].data = txNumData;
+
+                    // Update the chart with new data
+                    chart.setOption(options);
+                },
+                error: function (error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        }
+
+        // Trigger fetchData when the "Update Chart" button is clicked
+        $('#update-chart').click(function() {
+            fetchData();
+        });
+
+        // Initial data load for the default time range (last 7 days)
+        fetchData();
+    });
+
+</script>
+</body>
+</html>
