@@ -1,4 +1,4 @@
-package com.zjp.echartsdemo.entity;
+package org.tron.data.entity;
 
 import java.util.Date;
 

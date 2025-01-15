@@ -1,9 +1,9 @@
-package com.zjp.echartsdemo.service.impl;
+package org.tron.data.service.impl;
 
-import com.zjp.echartsdemo.dao.BlockGenerateInfoMapper;
-import com.zjp.echartsdemo.entity.BlockGenerateInfo;
-import com.zjp.echartsdemo.entity.QueryParam;
-import com.zjp.echartsdemo.service.BlockGenerateInfoService;
+import org.tron.data.dao.BlockGenerateInfoMapper;
+import org.tron.data.entity.BlockGenerateInfo;
+import org.tron.data.entity.QueryParam;
+import org.tron.data.service.BlockGenerateInfoService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

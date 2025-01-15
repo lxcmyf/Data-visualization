@@ -1,7 +1,7 @@
-package com.zjp.echartsdemo.dao;
+package org.tron.data.dao;
 
-import com.zjp.echartsdemo.entity.BlockGenerateInfo;
-import com.zjp.echartsdemo.entity.QueryParam;
+import org.tron.data.entity.BlockGenerateInfo;
+import org.tron.data.entity.QueryParam;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

@@ -11,7 +11,7 @@
             width: 100%;
             height: 500px;
         }
-        .time-select {
+        .time-select, .ip-select {
             margin-bottom: 20px;
         }
 
@@ -26,7 +26,17 @@
     <input type="datetime-local" id="start-time">
     <label for="end-time">End Time:</label>
     <input type="datetime-local" id="end-time">
-    <button id="update-chart">Update Chart</button>
+</div>
+
+<!-- IP Address Selection -->
+<div class="ip-select">
+    <label for="ip-select">Select SR:</label>
+    <select id="ip-select">
+        <option value="187">sr-187</option>
+        <option value="141">sr-141</option>
+        <option value="126">sr-126</option>
+        <option value="124">sr-124</option>
+    </select>
 </div>
 
 <div id="chart"></div>
@@ -49,16 +59,17 @@
                         return `${item.seriesName}: ${item.value}`;
                     }).join('<br>');
 
-                    // Extract updateTime from the first data point (assumes consistent updateTime for the axis point)
+                    // Extract height and updateTime from the first data point
+                    var height = params[0]?.data.height || 'N/A';
                     var updateTime = params[0]?.data.updateTime || 'N/A';
-                    return `${tooltipText}<br>Update Time: ${updateTime}`;
+                    return `Height: ${height}<br>${tooltipText}<br>Update Time: ${updateTime}`;
                 }
             },
             legend: {
-                data: ['Cost', 'Transaction Number'],
+                data: ['Cost', 'Transaction Num'],
                 selected: {
                     'Cost': true,
-                    'Transaction Number': true
+                    'Transaction Num': true
                 }
             },
             xAxis: {
@@ -77,7 +88,7 @@
                     data: []
                 },
                 {
-                    name: 'Transaction Number',
+                    name: 'Transaction Num',
                     type: 'line',
                     data: []
                 }
@@ -107,18 +118,20 @@
             return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
         }
 
-        // Fetch data based on selected time range
+        // Fetch data based on selected time range and IP
         function fetchData() {
             var startTime = $('#start-time').val();
             var endTime = $('#end-time').val();
+            var selectedIP = $('#ip-select').val();  // Get the selected IP
 
             $.ajax({
                 url: '/getBlockGenerateInfo',
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    startTime: $('#start-time').val(),
-                    endTime: $('#end-time').val()
+                    startTime: startTime,
+                    endTime: endTime,
+                    ipSuffix: selectedIP   // Pass the selected IP to the backend
                 }),
                 success: function (response) {
                     var heights = [];
@@ -127,8 +140,8 @@
 
                     response.forEach(function (item) {
                         heights.push(item.height);
-                        costData.push({ value: item.cost, updateTime: item.updateTime });
-                        txNumData.push({ value: item.txNum, updateTime: item.updateTime });
+                        costData.push({ value: item.cost, height: item.height, updateTime: item.updateTime });
+                        txNumData.push({ value: item.txNum, height: item.height, updateTime: item.updateTime });
                     });
 
                     options.xAxis.data = heights;
@@ -144,8 +157,8 @@
             });
         }
 
-        // Trigger fetchData when the "Update Chart" button is clicked
-        $('#update-chart').click(function() {
+        // Event listeners for automatic data fetch
+        $('#start-time, #end-time, #ip-select').change(function () {
             fetchData();
         });
 

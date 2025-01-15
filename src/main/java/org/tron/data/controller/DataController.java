@@ -1,8 +1,8 @@
-package com.zjp.echartsdemo.controller;
+package org.tron.data.controller;
 
-import com.zjp.echartsdemo.entity.BlockGenerateInfo;
-import com.zjp.echartsdemo.entity.QueryParam;
-import com.zjp.echartsdemo.service.BlockGenerateInfoService;
+import org.tron.data.entity.BlockGenerateInfo;
+import org.tron.data.entity.QueryParam;
+import org.tron.data.service.BlockGenerateInfoService;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +21,9 @@ public class DataController {
     @PostMapping("/getBlockGenerateInfo")
     @ResponseBody
     public List<BlockGenerateInfo> getBlockGenerateInfo(@RequestBody QueryParam queryParam){
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        List<BlockGenerateInfo> blockGenerateInfoList = generateInfoService.selectByParam(queryParam);
-        blockGenerateInfoList.forEach(o -> o.setUpdateTimeStr(dateFormat.format(o.getUpdateTime())));
-        return blockGenerateInfoList;
+//        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        //        blockGenerateInfoList.forEach(o -> o.setUpdateTimeStr(dateFormat.format(o.getUpdateTime())));
+        return generateInfoService.selectByParam(queryParam);
     }
 
     @RequestMapping("/")

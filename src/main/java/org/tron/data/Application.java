@@ -1,4 +1,4 @@
-package com.zjp.echartsdemo;
+package org.tron.data;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

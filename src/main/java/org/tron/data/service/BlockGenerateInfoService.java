@@ -1,7 +1,7 @@
-package com.zjp.echartsdemo.service;
+package org.tron.data.service;
 
-import com.zjp.echartsdemo.entity.BlockGenerateInfo;
-import com.zjp.echartsdemo.entity.QueryParam;
+import org.tron.data.entity.BlockGenerateInfo;
+import org.tron.data.entity.QueryParam;
 import java.util.List;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,15 @@
-package com.zjp.echartsdemo.entity;
+package org.tron.data.entity;
 
 public class QueryParam {
+  public String getIpSuffix() {
+    return ipSuffix;
+  }
+
+  public void setIpSuffix(String ipSuffix) {
+    this.ipSuffix = ipSuffix;
+  }
+
+  private String ipSuffix;
   public String getStartTime() {
     return startTime;
   }
