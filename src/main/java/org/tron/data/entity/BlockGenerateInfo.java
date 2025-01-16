@@ -1,10 +1,14 @@
 package org.tron.data.entity;
 
+import com.opencsv.bean.CsvBindByName;
 import java.util.Date;
 
 public class BlockGenerateInfo {
+  @CsvBindByName(column = "height")
   private long height;
+  @CsvBindByName(column = "cost")
   private long cost;
+  @CsvBindByName(column = "tx_num")
   private long txNum;
 
   public String getUpdateTimeStr() {
@@ -15,6 +19,7 @@ public class BlockGenerateInfo {
     this.updateTimeStr = updateTimeStr;
   }
 
+  @CsvBindByName(column = "update_time")
   private String updateTimeStr;
 
   public Date getUpdateTime() {
@@ -24,7 +29,6 @@ public class BlockGenerateInfo {
   public void setUpdateTime(Date updateTime) {
     this.updateTime = updateTime;
   }
-
   private Date updateTime;
 
   public long getHeight() {

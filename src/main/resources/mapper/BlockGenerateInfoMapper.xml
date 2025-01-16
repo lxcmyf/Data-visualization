@@ -19,4 +19,12 @@
         #{queryParam.startTime} and update_time &lt; #{queryParam.endTime}
     </select>
 
+    <insert id="insertBatch">
+        INSERT INTO block_generate_${tableSuffix} (height, cost, tx_num, update_time)
+        VALUES
+        <foreach collection="records" item="record" separator=",">
+            (#{record.height}, #{record.cost}, #{record.txNum}, #{record.updateTimeStr})
+        </foreach>
+    </insert>
+
 </mapper>

@@ -9,4 +9,6 @@ import org.springframework.stereotype.Service;
 public interface BlockGenerateInfoService {
     List<BlockGenerateInfo> selectAll();
     List<BlockGenerateInfo> selectByParam(QueryParam queryParam);
+
+    void insertBatch(String tableSuffix, List<BlockGenerateInfo> blockGenerateInfoList);
 }

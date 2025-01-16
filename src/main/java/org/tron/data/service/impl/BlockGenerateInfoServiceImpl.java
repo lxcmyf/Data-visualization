@@ -21,4 +21,9 @@ public class BlockGenerateInfoServiceImpl implements BlockGenerateInfoService {
   public List<BlockGenerateInfo> selectByParam(QueryParam queryParam) {
     return blockGenerateInfoMapper.selectByParam(queryParam);
   }
+
+  @Override
+  public void insertBatch(String tableSuffix, List<BlockGenerateInfo> blockGenerateInfoList) {
+    blockGenerateInfoMapper.insertBatch(tableSuffix, blockGenerateInfoList);
+  }
 }

@@ -11,4 +11,6 @@ public interface BlockGenerateInfoMapper {
     List<BlockGenerateInfo> selectAll();
 
     List<BlockGenerateInfo> selectByParam(@Param("queryParam") QueryParam queryParam);
+
+    void insertBatch(@Param("tableSuffix") String tableSuffix, @Param("records") List<BlockGenerateInfo> records);
 }
