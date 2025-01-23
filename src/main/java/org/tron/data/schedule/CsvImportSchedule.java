@@ -2,6 +2,9 @@ package org.tron.data.schedule;
 
 import com.opencsv.bean.CsvToBeanBuilder;
 import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,6 +42,11 @@ public class CsvImportSchedule {
       generateInfoService.insertBatch("187", records187);
 
       log.info("CSV 文件成功导入数据库！");
+
+      deleteFile(csvFilePath124);
+      deleteFile(csvFilePath126);
+      deleteFile(csvFilePath141);
+      deleteFile(csvFilePath187);
     } catch (Exception e) {
       e.printStackTrace();
       log.error("CSV 文件导入失败：" + e.getMessage());
@@ -50,5 +58,20 @@ public class CsvImportSchedule {
         .withType(BlockGenerateInfo.class)
         .build()
         .parse();
+  }
+
+  public static void deleteFile(String filePath) {
+    Path path = Paths.get(filePath);
+    if (Files.exists(path)) {
+      try {
+        Files.delete(path);
+        log.info("文件已删除: {}", filePath);
+      } catch (Exception e) {
+        log.error("无法删除文件: {}", filePath);
+        e.printStackTrace();
+      }
+    } else {
+      log.warn("文件不存在: {}", filePath);
+    }
   }
 }
