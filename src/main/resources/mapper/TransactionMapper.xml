@@ -39,7 +39,9 @@
         FROM transaction
         WHERE update_time &gt;= #{queryParam.startTime}
         AND update_time &lt;= #{queryParam.endTime}
-        AND from_address = #{queryParam.fromAddress}
+        <if test="queryParam.fromAddress != null and queryParam.fromAddress != ''">
+            AND from_address = #{queryParam.fromAddress}
+        </if>
         GROUP BY tx_type
         ORDER BY count DESC
         LIMIT 10
