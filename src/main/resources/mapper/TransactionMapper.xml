@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- resultMap最终还是要将结果映射到pojo上，type就是指定映射到哪一个pojo -->
+<mapper namespace="org.tron.data.dao.TransactionMapper">
+    <!-- property：主键在pojo中的属性名 -->
+    <!-- column：主键在数据库中的列名 -->
+    <resultMap id="BaseResultMap" type="org.tron.data.entity.Transaction">
+        <result column="tx_id" jdbcType="VARCHAR" property="txId" />
+        <result column="tx_type"  jdbcType="VARCHAR" property="txType" />
+        <result column="block_num"  jdbcType="VARCHAR" property="blockNum" />
+        <result column="from_address"  jdbcType="VARCHAR" property="fromAddress" />
+        <result column="to_address"  jdbcType="VARCHAR" property="toAddress" />
+        <result column="amount"  jdbcType="BIGINT" property="amount" />
+        <result column="token"  jdbcType="INTEGER" property="token" />
+        <result column="result"  jdbcType="INTEGER" property="result" />
+        <result column="status"  jdbcType="INTEGER" property="status" />
+        <result column="update_time"  jdbcType="TIMESTAMP" property="updateTime" />
+    </resultMap>
+
+    <insert id="insertTransactions">
+        INSERT INTO transaction (tx_id, tx_type, block_num, from_address, to_address, amount, token, result, status, update_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.txId}, #{item.txType}, #{item.blockNum}, #{item.fromAddress}, #{item.toAddress}, #{item.amount}, #{item.token}, #{item.result}, #{item.status}, #{item.updateTime})
+        </foreach>
+    </insert>
+
+    <select id="getFromAddressTop" parameterType="map" resultType="org.tron.data.vo.FromAddressVO">
+        SELECT from_address fromAddress, COUNT(*) count
+        FROM transaction
+        WHERE update_time &gt;= #{queryParam.startTime} AND update_time &lt;= #{queryParam.endTime}
+        GROUP BY from_address
+        ORDER BY count DESC
+        LIMIT 10
+    </select>
+
+    <select id="getTopTxTypeByFromAddress" parameterType="map" resultType="org.tron.data.vo.TxTypeVO">
+        SELECT tx_type txType, COUNT(*) count
+        FROM transaction
+        WHERE update_time &gt;= #{queryParam.startTime}
+        AND update_time &lt;= #{queryParam.endTime}
+        AND from_address = #{queryParam.fromAddress}
+        GROUP BY tx_type
+        ORDER BY count DESC
+        LIMIT 10
+    </select>
+
+
+
+</mapper>
