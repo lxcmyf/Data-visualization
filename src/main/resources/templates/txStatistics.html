@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TRON 交易统计</title>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
@@ -33,10 +32,12 @@
         <input type="text" id="fromAddress" class="form-control">
     </div>
     <button id="searchBtn" class="btn btn-primary">查询</button>
+    <button id="hbBtn" class="btn btn-secondary">环比</button>
+    <button id="tbBtn" class="btn btn-secondary">同比</button>
 
     <div class="row mt-4">
         <div class="col-md-6">
-            <div class="card">
+            <div class="card" id="fromAddressCard">
                 <div class="card-header">From Address 出现次数 Top 10</div>
                 <div class="card-body">
                     <table class="table">
@@ -53,7 +54,7 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card">
+            <div class="card" id="txTypeCard">
                 <div class="card-header">指定 From Address 的交易类型 Top 10</div>
                 <div class="card-body">
                     <table class="table">
@@ -72,19 +73,70 @@
 </div>
 
 <script>
-    $(document).ready(function() {
+    $(function() {
+        function getPreviousTime(time, days) {
+            let date = new Date(time);
+            date.setDate(date.getDate() - days);
+
+            let year = date.getFullYear();
+            let month = String(date.getMonth() + 1).padStart(2, '0');
+            let day = String(date.getDate()).padStart(2, '0');
+            let hours = String(date.getHours()).padStart(2, '0');
+            let minutes = String(date.getMinutes()).padStart(2, '0');
+            let seconds = String(date.getSeconds()).padStart(2, '0');
+
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        }
+
+
+        function fetchComparisonData(url, cardId, startTime, endTime, title) {
+            $.ajax({
+                url: url,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ startTime, endTime }),
+                success: function(data) {
+                    let card = $(cardId);
+                    let keyLabel = cardId === '#fromAddressCard' ? 'From Address' : 'Tx Type';
+                    let newCard = $(`
+                        <div class="card mt-3">
+                            <div class="card-header">${title}</div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">${keyLabel}</th>
+                                        <th scope="col">Count</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.map(item => `<tr><td>${item.txType || item.fromAddress}</td><td>${item.count}</td></tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `);
+                    card.after(newCard);
+                },
+                error: function() {
+                    alert('加载失败');
+                }
+            });
+        }
+
         $('#searchBtn').click(function() {
             let timeStart = $('#timeStart').val();
             let timeEnd = $('#timeEnd').val();
-            let fromAddress = $('#fromAddress').val();
-            let txTypeCardHeader = $('.card-header:eq(1)'); // 获取第二个 card 的标题
-
             if (!timeStart || !timeEnd) {
                 alert('请填写时间区间');
                 return;
             }
+            $('#fromAddressCard').nextAll('.card').remove();
+            $('#txTypeCard').nextAll('.card').remove();
 
-            // 获取 fromAddress 出现次数 top 10
+            let fromAddress = $('#fromAddress').val();
+            let txTypeCardHeader = $('.card-header:eq(1)'); // 获取第二个 card 的标题
+
             $.ajax({
                 url: `/getFromAddressTop`,
                 method: 'POST',
@@ -121,6 +173,20 @@
                     $('#txTypeList').append('<tr><td colspan="2" class="text-danger">加载失败</td></tr>');
                 }
             });
+        });
+
+        $('#hbBtn').click(function() {
+            let timeStart = getPreviousTime($('#timeStart').val(), 1);
+            let timeEnd = getPreviousTime($('#timeEnd').val(), 1);
+            fetchComparisonData('/getFromAddressTop', '#fromAddressCard', timeStart, timeEnd, '环比 From Address');
+            fetchComparisonData('/getTopTxTypeByFromAddress', '#txTypeCard', timeStart, timeEnd, '环比 交易类型');
+        });
+
+        $('#tbBtn').click(function() {
+            let timeStart = getPreviousTime($('#timeStart').val(), 7);
+            let timeEnd = getPreviousTime($('#timeEnd').val(), 7);
+            fetchComparisonData('/getFromAddressTop', '#fromAddressCard', timeStart, timeEnd, '同比 From Address');
+            fetchComparisonData('/getTopTxTypeByFromAddress', '#txTypeCard', timeStart, timeEnd, '同比 交易类型');
         });
     });
 </script>
