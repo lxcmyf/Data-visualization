@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.tron.data.service.impl.TransactionService;
+import org.tron.data.vo.AmountVO;
 import org.tron.data.vo.FromAddressVO;
 import org.tron.data.vo.TxTypeVO;
 
@@ -61,6 +62,11 @@ public class DataController {
     @ResponseBody
     public List<TxTypeVO> getTopTxTypeByFromAddress(@RequestBody QueryParam queryParam){
         return transactionService.getTopTxTypeByFromAddress(queryParam);
+    }
+    @PostMapping("/getAmountTrendByAddress")
+    @ResponseBody
+    public List<AmountVO> getAmountTrendByAddress(@RequestBody QueryParam queryParam){
+        return transactionService.getAmountTrendByAddress(queryParam);
     }
 
 }

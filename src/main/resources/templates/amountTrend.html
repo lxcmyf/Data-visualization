@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>查询交易金额趋势</title>
+    <!-- 引入 jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- 引入 ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .query-container {
+      margin-bottom: 20px;
+    }
+    .query-container label {
+      margin-right: 5px;
+    }
+    .query-container input,
+    .query-container select {
+      margin-right: 15px;
+    }
+  </style>
+</head>
+<body>
+<h1>查询交易金额趋势</h1>
+<div class="query-container">
+    <label for="startTime">开始时间:</label>
+    <input type="datetime-local" id="startTime" name="startTime">
+
+    <label for="endTime">结束时间:</label>
+    <input type="datetime-local" id="endTime" name="endTime">
+
+    <label for="address">Address:</label>
+    <input type="text" id="address" name="address" placeholder="请输入地址">
+
+    <label for="txType">交易类型:</label>
+    <select id="txType" name="txType">
+        <option value="TransferContract" selected>TransferContract</option>
+        <!-- 其他类型可在此添加 -->
+    </select>
+
+    <button id="searchBtn">查询</button>
+</div>
+
+<!-- 用于显示图表 -->
+<div id="chart" style="width: 100%; height: 400px;"></div>
+
+<script>
+    $(document).ready(function() {
+      // 初始化 ECharts 实例
+      var myChart = echarts.init(document.getElementById('chart'));
+
+      // 设置初始图表配置
+      var option = {
+        title: {
+          text: '交易金额趋势'
+        },
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'category',
+          data: [] // 后续填充交易时间 txTime
+        },
+        yAxis: {
+          type: 'value',
+          name: '交易金额'
+        },
+        series: [{
+          name: '交易金额',
+          type: 'line',
+          data: [] // 后续填充交易金额 amount
+        }]
+      };
+      myChart.setOption(option);
+
+      // 点击查询按钮，发送 AJAX 请求
+      $('#searchBtn').click(function() {
+        // 获取输入值
+        var startTime = $.trim($('#startTime').val());
+        var endTime   = $.trim($('#endTime').val());
+        var address   = $.trim($('#address').val());
+        var txType    = $('#txType').val();
+
+        // 验证必填项：开始时间、结束时间和 address
+        if (!startTime || !endTime || !address) {
+          alert('开始时间、结束时间和地址不能为空！');
+          return;  // 终止执行
+        }
+
+        // 构造请求参数
+        var requestData = {
+          startTime: startTime,
+          endTime: endTime,
+          address: address,
+          txType: txType
+        };
+
+        // 发送 AJAX POST 请求
+        $.ajax({
+          type: 'POST',
+          url: '/getAmountTrendByAddress',
+          data: JSON.stringify(requestData),
+          contentType: 'application/json',
+          dataType: 'json',
+          success: function(response) {
+            // 假设返回数据为数组，每个对象包含 txTime 和 amount 两个字段
+            var txTimes = [];
+            var amounts = [];
+            $.each(response, function(index, item) {
+              txTimes.push(item.txTime);
+              amounts.push(item.amount);
+            });
+            // 更新图表数据
+            myChart.setOption({
+              xAxis: {
+                data: txTimes
+              },
+              series: [{
+                data: amounts
+              }]
+            });
+          },
+          error: function(xhr, status, error) {
+            console.error('请求错误:', error);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

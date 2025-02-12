@@ -10,6 +10,7 @@ public class Transaction {
   private String txId;
   private Integer blockNum;
   private Date updateTime;
+  private Date txTime;
   private String txType;
   private String methodId;
   private String methodName;

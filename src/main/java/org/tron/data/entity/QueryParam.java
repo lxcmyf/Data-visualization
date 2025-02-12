@@ -10,4 +10,5 @@ public class QueryParam {
   private String startTime;
   private String endTime;
   private String fromAddress;
+  private String txType;
 }

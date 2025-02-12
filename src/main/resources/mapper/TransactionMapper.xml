@@ -15,13 +15,14 @@
         <result column="result"  jdbcType="INTEGER" property="result" />
         <result column="status"  jdbcType="INTEGER" property="status" />
         <result column="update_time"  jdbcType="TIMESTAMP" property="updateTime" />
+        <result column="tx_time"  jdbcType="TIMESTAMP" property="txTime" />
     </resultMap>
 
     <insert id="insertTransactions">
-        INSERT INTO transaction (tx_id, tx_type, block_num, from_address, to_address, amount, token, result, status, update_time)
+        INSERT INTO transaction (tx_id, tx_type, block_num, from_address, to_address, amount, token, result, status, update_time, tx_time)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item.txId}, #{item.txType}, #{item.blockNum}, #{item.fromAddress}, #{item.toAddress}, #{item.amount}, #{item.token}, #{item.result}, #{item.status}, #{item.updateTime})
+            (#{item.txId}, #{item.txType}, #{item.blockNum}, #{item.fromAddress}, #{item.toAddress}, #{item.amount}, #{item.token}, #{item.result}, #{item.status}, #{item.updateTime}, #{item.txTime})
         </foreach>
     </insert>
 
@@ -45,6 +46,14 @@
         GROUP BY tx_type
         ORDER BY count DESC
         LIMIT 10
+    </select>
+
+    <select id="getAmountTrendByAddress" parameterType="map" resultType="org.tron.data.vo.AmountVO">
+        SELECT amount, tx_time txTime
+        FROM transaction
+        WHERE tx_time &gt;= #{queryParam.startTime} AND tx_time &lt;= #{queryParam.endTime}
+        AND from_address = #{queryParam.fromAddress}
+        AND tx_type = #{queryParam.txType}
     </select>
 
 

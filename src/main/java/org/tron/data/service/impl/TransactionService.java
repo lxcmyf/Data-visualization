@@ -16,14 +16,15 @@ import org.springframework.stereotype.Service;
 import org.tron.data.dao.TransactionMapper;
 import org.tron.data.entity.QueryParam;
 import org.tron.data.entity.Transaction;
+import org.tron.data.vo.AmountVO;
 import org.tron.data.vo.FromAddressVO;
 import org.tron.data.vo.TxTypeVO;
 
 @Slf4j
 @Service
 public class TransactionService {
-  private static final String TRONGRID_API_URL_GETNOWBLOCK = "https://api.trongrid.io/wallet/getnowblock?visible=true";
-  private static final String TRONGRID_API_URL_GETBLOCKBYNUM = "https://api.trongrid.io/wallet/getblockbynum?visible=true";
+  private static final String TRONGRID_API_URL_GETNOWBLOCK = "https://api.trongrid.io/walletsolidity/getnowblock?visible=true";
+  private static final String TRONGRID_API_URL_GETBLOCKBYNUM = "https://api.trongrid.io/walletsolidity/getblockbynum?visible=true";
   private static final int MAX_RETRIES = 3;
   private static long currentNum = 0;
 
@@ -85,7 +86,10 @@ public class TransactionService {
         transaction.setUpdateTime(updateTime);
         transaction.setTxId(transactionNode.getString("txID"));
 
-        JSONObject contract = transactionNode.getJSONObject("raw_data").getJSONArray("contract").getJSONObject(0);
+        JSONObject txRawData = transactionNode.getJSONObject("raw_data");
+        JSONObject contract = txRawData.getJSONArray("contract").getJSONObject(0);
+        long txTime = txRawData.getLongValue("timestamp");
+        transaction.setTxTime(new Date(txTime));
         String txType = contract.getString("type");
         transaction.setTxType(txType);
         JSONObject value = contract.getJSONObject("parameter").getJSONObject("value");
@@ -125,5 +129,9 @@ public class TransactionService {
 
   public List<TxTypeVO> getTopTxTypeByFromAddress(QueryParam queryParam) {
     return transactionMapper.getTopTxTypeByFromAddress(queryParam);
+  }
+
+  public List<AmountVO> getAmountTrendByAddress(QueryParam queryParam) {
+    return transactionMapper.getAmountTrendByAddress(queryParam);
   }
 }
