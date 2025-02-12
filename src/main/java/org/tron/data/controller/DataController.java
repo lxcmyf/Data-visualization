@@ -44,6 +44,11 @@ public class DataController {
         return "txStatistics";
     }
 
+    @RequestMapping("/txAmountTrend")
+    public String txAmountTrend(){
+        return "txAmountTrend";
+    }
+
     @RequestMapping("/insertTransactions")
     public JSONObject insertTransactions(){
         transactionService.fetchAndInsertTransactions();
