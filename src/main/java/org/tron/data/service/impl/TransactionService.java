@@ -89,7 +89,7 @@ public class TransactionService {
         JSONObject txRawData = transactionNode.getJSONObject("raw_data");
         JSONObject contract = txRawData.getJSONArray("contract").getJSONObject(0);
         long txTime = txRawData.getLongValue("timestamp");
-        transaction.setTxTime(new Date(txTime));
+//        transaction.setTxTime(new Date(txTime));
         String txType = contract.getString("type");
         transaction.setTxType(txType);
         JSONObject value = contract.getJSONObject("parameter").getJSONObject("value");
