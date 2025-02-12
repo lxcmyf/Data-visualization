@@ -51,10 +51,10 @@ public class TransactionService {
         String response = callApi(url);
         return parseTransactions(response);
       } catch (Exception e) {
-        System.err.println("Failed to fetch current block (attempt " + (attempt + 1) + "): " + e.getMessage());
+        log.error("Failed to fetch current block (attempt {})", attempt + 1, e);
       }
     }
-    System.err.println("Failed to fetch current block after " + MAX_RETRIES + " attempts");
+    log.error("Failed to fetch current block after {} attempts", MAX_RETRIES);
     return null;
   }
 
@@ -68,6 +68,13 @@ public class TransactionService {
     }
     assert response.body() != null;
     return response.body().string();
+  }
+
+  public static boolean isValidTimestamp(long timestamp) {
+    long minTimestamp = 0L;                   // 1970-01-01 00:00:00 UTC
+    long maxTimestamp = 253402300799000L;      // 9999-12-31 23:59:59 UTC
+
+    return timestamp > minTimestamp && timestamp < maxTimestamp;
   }
 
   private static List<Transaction> parseTransactions(String jsonResponse) {
@@ -89,7 +96,11 @@ public class TransactionService {
         JSONObject txRawData = transactionNode.getJSONObject("raw_data");
         JSONObject contract = txRawData.getJSONArray("contract").getJSONObject(0);
         long txTime = txRawData.getLongValue("timestamp");
-//        transaction.setTxTime(new Date(txTime));
+        if (isValidTimestamp(txTime)) {
+          transaction.setTxTime(new Date(txTime));
+        } else {
+          transaction.setTxTime(updateTime);
+        }
         String txType = contract.getString("type");
         transaction.setTxType(txType);
         JSONObject value = contract.getJSONObject("parameter").getJSONObject("value");
