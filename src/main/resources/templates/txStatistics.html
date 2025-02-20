@@ -13,17 +13,26 @@
         .card {
             margin-bottom: 20px;
         }
+        .input-date-range input {
+            width: 210px;
+        }
+        .from-address {
+            max-width: 150px;  /* 控制列宽 */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <h2 class="text-center">TRON 交易统计</h2>
 
-    <div class="mb-3">
+    <div class="mb-3 input-date-range">
         <label for="timeStart" class="form-label">开始时间：</label>
         <input type="datetime-local" id="timeStart" class="form-control" step="1">
     </div>
-    <div class="mb-3">
+    <div class="mb-3 input-date-range">
         <label for="timeEnd" class="form-label">结束时间：</label>
         <input type="datetime-local" id="timeEnd" class="form-control" step="1">
     </div>
@@ -35,9 +44,9 @@
     <button id="hbBtn" class="btn btn-secondary">环比</button>
     <button id="tbBtn" class="btn btn-secondary">同比</button>
 
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card" id="fromAddressCard">
+    <div class="row mt-4" id="addressComparisonRow">
+        <div class="col-md-4" id="fromAddressCol">
+            <div class="card" >
                 <div class="card-header">From Address 出现次数 Top 10</div>
                 <div class="card-body">
                     <table class="table">
@@ -52,9 +61,11 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-6">
-            <div class="card" id="txTypeCard">
+    <div class="row mt-4" id="txComparisonRow">
+        <div class="col-md-4" id="txTypeCol">
+            <div class="card" >
                 <div class="card-header">指定 From Address 的交易类型 Top 10</div>
                 <div class="card-body">
                     <table class="table">
@@ -88,35 +99,36 @@
             return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
         }
 
-
-        function fetchComparisonData(url, cardId, startTime, endTime, title) {
+        function fetchComparisonData(url, rowId, title, timeStart, timeEnd) {
+            let fromAddress = $('#fromAddress').val();
             $.ajax({
                 url: url,
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ startTime, endTime }),
+                data: JSON.stringify({ startTime: timeStart, endTime: timeEnd, fromAddress: fromAddress }),
                 success: function(data) {
-                    let card = $(cardId);
-                    let keyLabel = cardId === '#fromAddressCard' ? 'From Address' : 'Tx Type';
-                    let newCard = $(`
-                        <div class="card mt-3">
-                            <div class="card-header">${title}</div>
-                            <div class="card-body">
-                                <table class="table">
-                                    <thead>
-                                    <tr>
-                                        <th scope="col">${keyLabel}</th>
-                                        <th scope="col">Count</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${data.map(item => `<tr><td>${item.txType || item.fromAddress}</td><td>${item.count}</td></tr>`).join('')}
-                                    </tbody>
-                                </table>
+                    let row = $(rowId);
+                    let newCol = $(`
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">${title}</div>
+                                <div class="card-body">
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col">${title.includes('From Address') ? 'From Address' : 'Tx Type'}</th>
+                                            <th scope="col">Count</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${data.map(item => `<tr><td class="from-address" title="${item.txType || item.fromAddress}">${item.txType || item.fromAddress}</td><td>${item.count}</td></tr>`).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     `);
-                    card.after(newCard);
+                    row.append(newCol);
                 },
                 error: function() {
                     alert('加载失败');
@@ -131,11 +143,11 @@
                 alert('请填写时间区间');
                 return;
             }
-            $('#fromAddressCard').nextAll('.card').remove();
-            $('#txTypeCard').nextAll('.card').remove();
+            $('#addressComparisonRow').children('.col-md-4').not('#fromAddressCol').remove();
+            $('#txComparisonRow').children('.col-md-4').not('#txTypeCol').remove();
 
             let fromAddress = $('#fromAddress').val();
-            let txTypeCardHeader = $('.card-header:eq(1)'); // 获取第二个 card 的标题
+            let txTypeCardHeader = $('#txTypeCol .card-header:eq(0)'); // 获取第二个 card 的标题
 
             $.ajax({
                 url: `/getFromAddressTop`,
@@ -146,7 +158,12 @@
                     let list = $('#fromAddressList');
                     list.empty();
                     data.forEach(item => {
-                        list.append(`<tr><td>${item.fromAddress}</td><td>${item.count}</td></tr>`);
+                        list.append(`
+                            <tr>
+                                <td class="from-address" title="${item.fromAddress}">${item.fromAddress}</td>
+                                <td>${item.count}</td>
+                            </tr>
+                        `);
                     });
                 },
                 error: function() {
@@ -178,15 +195,15 @@
         $('#hbBtn').click(function() {
             let timeStart = getPreviousTime($('#timeStart').val(), 1);
             let timeEnd = getPreviousTime($('#timeEnd').val(), 1);
-            fetchComparisonData('/getFromAddressTop', '#fromAddressCard', timeStart, timeEnd, '环比 From Address');
-            fetchComparisonData('/getTopTxTypeByFromAddress', '#txTypeCard', timeStart, timeEnd, '环比 交易类型');
+            fetchComparisonData('/getFromAddressTop', '#addressComparisonRow', '环比 From Address 出现次数 Top 10', timeStart, timeEnd);
+            fetchComparisonData('/getTopTxTypeByFromAddress', '#txComparisonRow', '环比 交易类型 Top 10', timeStart, timeEnd);
         });
 
         $('#tbBtn').click(function() {
             let timeStart = getPreviousTime($('#timeStart').val(), 7);
             let timeEnd = getPreviousTime($('#timeEnd').val(), 7);
-            fetchComparisonData('/getFromAddressTop', '#fromAddressCard', timeStart, timeEnd, '同比 From Address');
-            fetchComparisonData('/getTopTxTypeByFromAddress', '#txTypeCard', timeStart, timeEnd, '同比 交易类型');
+            fetchComparisonData('/getFromAddressTop', '#addressComparisonRow', '同比 From Address 出现次数 Top 10', timeStart, timeEnd);
+            fetchComparisonData('/getTopTxTypeByFromAddress', '#txComparisonRow', '同比 交易类型 Top 10', timeStart, timeEnd);
         });
     });
 </script>
